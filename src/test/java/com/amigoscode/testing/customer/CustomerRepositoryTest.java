@@ -10,7 +10,11 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
-@DataJpaTest
+@DataJpaTest(
+        properties = {
+                "spring.jpa.properties.javax.persistence.validation.mode=none"
+        }
+)
 class CustomerRepositoryTest {
 
     @Autowired
@@ -19,10 +23,20 @@ class CustomerRepositoryTest {
     @Test
     void itShouldSelectCustomerByPhoneNumber() {
         //given
+        UUID id = UUID.randomUUID();
+        String phoneNumber = "0000";
+        Customer customer = new Customer(id, "Abel", phoneNumber);
 
         //when
+        underTest.save(customer);
 
         //then
+        Optional<Customer> optionalCustomer = underTest.selectCustomerByPhoneNumber(phoneNumber);
+        assertThat(optionalCustomer)
+                .isPresent()
+                .hasValueSatisfying(c -> {
+                    assertThat(c).usingRecursiveComparison().isEqualTo(customer);
+                });
     }
 
     @Test
