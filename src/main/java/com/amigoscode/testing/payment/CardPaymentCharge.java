@@ -6,8 +6,11 @@ import lombok.ToString;
 
 @Getter
 @ToString
-@AllArgsConstructor
 public class CardPaymentCharge {
 
     private final boolean isCardDebited;
+
+    public CardPaymentCharge(boolean isCardDebited) {
+        this.isCardDebited = isCardDebited;
+    }
 }
