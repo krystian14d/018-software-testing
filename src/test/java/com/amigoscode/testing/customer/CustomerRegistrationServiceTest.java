@@ -1,5 +1,6 @@
 package com.amigoscode.testing.customer;
 
+import com.amigoscode.testing.utils.PhoneNumberValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -12,17 +13,18 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 
 class CustomerRegistrationServiceTest {
 
     @Mock
     private CustomerRepository customerRepository;
+
+    @Mock
+    private PhoneNumberValidator phoneNumberValidator;
 
     @Captor
     private ArgumentCaptor<Customer> customerArgumentCaptor;
@@ -35,7 +37,7 @@ class CustomerRegistrationServiceTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        underTest = new CustomerRegistrationService(customerRepository);
+        underTest = new CustomerRegistrationService(phoneNumberValidator, customerRepository);
     }
 
     @Test
@@ -50,6 +52,9 @@ class CustomerRegistrationServiceTest {
         //no customer with phone number found
         given(customerRepository.selectCustomerByPhoneNumber(phoneNumber)).willReturn(Optional.empty());
 
+        //valid phone number
+        given(phoneNumberValidator.test(phoneNumber)).willReturn(true);
+
         //when
         underTest.registerNewCustomer(request);
 
@@ -57,6 +62,27 @@ class CustomerRegistrationServiceTest {
         then(customerRepository).should().save(customerArgumentCaptor.capture());
         Customer customerArgumentCaptorValue = customerArgumentCaptor.getValue();
         assertThat(customerArgumentCaptorValue).usingRecursiveComparison().isEqualTo(customer);
+    }
+
+    @Test
+    void itShouldNotSaveNewCustomerWhenPhoneNumberIsInvalid() {
+        //given a phone number and customer
+        String phoneNumber = "000099";
+        Customer customer = new Customer(UUID.randomUUID(), "Mariam", phoneNumber);
+
+        //...and a request
+        CustomerRegistrationRequest request = new CustomerRegistrationRequest(customer);
+
+        //valid phone number
+        given(phoneNumberValidator.test(phoneNumber)).willReturn(false);
+
+        //when
+        assertThatThrownBy(() -> underTest.registerNewCustomer(request))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Phone Number " + phoneNumber + " is not valid.");
+
+        //then
+        then(customerRepository).shouldHaveNoInteractions();
     }
 
     @Test
@@ -70,6 +96,9 @@ class CustomerRegistrationServiceTest {
 
         //no customer with phone number found
         given(customerRepository.selectCustomerByPhoneNumber(phoneNumber)).willReturn(Optional.empty());
+
+        //valid phone number
+        given(phoneNumberValidator.test(phoneNumber)).willReturn(true);
 
         //when
         underTest.registerNewCustomer(request);
@@ -95,6 +124,10 @@ class CustomerRegistrationServiceTest {
         //..no customer with phone number found
         given(customerRepository.selectCustomerByPhoneNumber(phoneNumber)).willReturn(Optional.of(customer));
 
+        //valid phone number
+        given(phoneNumberValidator.test(phoneNumber)).willReturn(true);
+
+
         //when
         underTest.registerNewCustomer(request);
 
@@ -118,6 +151,9 @@ class CustomerRegistrationServiceTest {
         given(customerRepository.selectCustomerByPhoneNumber(phoneNumber))
                 .willReturn(Optional.of(customer2));
 
+        //valid phone number
+        given(phoneNumberValidator.test(phoneNumber)).willReturn(true);
+
         //when    //then
         assertThatThrownBy(() -> underTest.registerNewCustomer(request))
                 .isInstanceOf(IllegalStateException.class)
@@ -126,4 +162,6 @@ class CustomerRegistrationServiceTest {
         //finally
         then(customerRepository).should(never()).save(any(Customer.class));
     }
+
+
 }
