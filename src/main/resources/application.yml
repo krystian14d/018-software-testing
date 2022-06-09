@@ -1,0 +1,6 @@
+stripe:
+    enabled: false
+twilio:
+    account_sid: AC1bf670f8168338bd94a652df232a75c4
+    auth_token: d571bdcb3d1909124e78da3701d18856
+    trial_number: +19704451881
