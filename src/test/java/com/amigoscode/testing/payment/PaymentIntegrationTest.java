@@ -66,7 +66,7 @@ class PaymentIntegrationTest {
         paymentResultActions.andExpect(status().isOk());
 
         //payment is stored in DB
-        //TODO: Di bit use payment repository, instead create an endpoint to retrieve payments for customers
+        //TODO: Do not use payment repository, instead create an endpoint to retrieve payments for customers
         assertThat(paymentRepository.findById(paymentId)).isPresent()
                 .hasValueSatisfying(p -> {
                     assertThat(p)
