@@ -3,4 +3,4 @@ stripe:
 twilio:
     account_sid:
     auth_token:
-    trial_number: +19704451881
+    trial_number:
