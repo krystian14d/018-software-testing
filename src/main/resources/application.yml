@@ -1,6 +1,6 @@
 stripe:
     enabled: false
 twilio:
-    account_sid: AC1bf670f8168338bd94a652df232a75c4
-    auth_token: aef196fc089f90e2adb1ea3f3db93de6
+    account_sid:
+    auth_token:
     trial_number: +19704451881
